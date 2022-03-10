@@ -1,11 +1,11 @@
 {
   "bindings": [
     {
-      "authLevel": "anonymous",
+      "authLevel": "function",
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route": "api/v1/info",
+      "route": "api/v2/services/{service_id}",
       "methods": [
         "get"
       ]
@@ -16,5 +16,5 @@
       "name": "res"
     }
   ],
-  "scriptFile": "../dist/Info/index.js"
+  "scriptFile": "../dist/GetServiceRust/index.js"
 }

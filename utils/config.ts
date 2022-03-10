@@ -17,20 +17,13 @@ import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 export type IConfig = t.TypeOf<typeof IConfig>;
 // eslint-disable-next-line @typescript-eslint/ban-types
 export const IConfig = t.interface({
-  AzureWebJobsStorage: NonEmptyString,
-
   COSMOSDB_KEY: NonEmptyString,
   COSMOSDB_NAME: NonEmptyString,
-  COSMOSDB_URI: NonEmptyString,
-
-  QueueStorageConnection: NonEmptyString,
-
-  isProduction: t.boolean
+  COSMOSDB_URI: NonEmptyString
 });
 
 export const envConfig = {
-  ...process.env,
-  isProduction: process.env.NODE_ENV === "production"
+  ...process.env
 };
 
 // No need to re-evaluate this object for each call
