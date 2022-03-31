@@ -11,11 +11,15 @@ crate-type = ["cdylib", "rlib"]
 default = ["console_error_panic_hook"]
 
 [dependencies]
-azure_core = { version = "0.1" }
-azure_data_cosmos = { version = "0.1.0", git = "https://github.com/Azure/azure-sdk-for-rust"}
-serde = { version = "1.0", features = ["derive"] }
 wasm-bindgen = { version = "0.2.63", features = ["serde-serialize"] }
 wasm-bindgen-futures = { version = "0.4.29" }
+
+reqwest = { version = "0.11", features = ["json"] }
+
+serde = { version = "1.0.101", features = ["derive"] }
+serde_derive = "^1.0.59"
+serde_json = "1.0.41"
+
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
 # all the `std::fmt` and `std::panicking` infrastructure, so isn't great for

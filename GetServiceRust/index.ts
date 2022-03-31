@@ -7,8 +7,20 @@ import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/uti
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 
+import fetch from "node-fetch";
 import { getConfigOrThrow } from "../utils/config";
 import { HttpCtrl } from "./handler";
+
+/* eslint-disable functional/immutable-data,@typescript-eslint/ban-ts-comment */
+// @ts-ignore
+global.fetch = fetch;
+// @ts-ignore
+global.Headers = fetch.Headers;
+// @ts-ignore
+global.Request = fetch.Request;
+// @ts-ignore
+global.Response = fetch.Response;
+/* eslint-enable functional/immutable-data, @typescript-eslint/ban-ts-comment */
 
 //
 //  CosmosDB initialization

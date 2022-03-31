@@ -14,7 +14,7 @@ import {
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { getService, Config, ServicePublic } from "rust-functions-js";
+import { getService, Config, Info } from "rust-module";
 import { IConfig } from "../utils/config";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 
@@ -22,20 +22,16 @@ type IHttpHandler = (
   context: Context,
   serviceId: NonEmptyString
 ) => Promise<
-  | IResponseSuccessJson<ServicePublic>
-  | IResponseErrorNotFound
-  | IResponseErrorInternal
+  IResponseSuccessJson<Info> | IResponseErrorNotFound | IResponseErrorInternal
 >;
 
 export const HttpHandler = (_: IConfig): IHttpHandler => async (
   __,
   serviceId
 ): Promise<
-  | IResponseSuccessJson<ServicePublic>
-  | IResponseErrorNotFound
-  | IResponseErrorInternal
+  IResponseSuccessJson<Info> | IResponseErrorNotFound | IResponseErrorInternal
 > => {
-  const r = getService(
+  const r = await getService(
     new Config(_.COSMOSDB_KEY, _.COSMOSDB_NAME, _.COSMOSDB_URI),
     serviceId
   );
