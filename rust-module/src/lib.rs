@@ -1,9 +1,11 @@
+mod cosmos;
 mod types;
 mod utils;
 
+use chrono::Utc;
+use cosmos::*;
 use types::*;
 
-use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -29,29 +31,43 @@ macro_rules! console_log {
 #[wasm_bindgen(js_name=getService)]
 pub async fn get_service(config: Config, service_id: String) -> Result<JsValue, JsValue> {
     console_log!("Get_service called!");
-
-    get_value("https://app-backend.io.italia.it/info")
-        .await
-        .map_err(|err| {
-            console_log!("Errore dalla get_value {:?}", err);
-
-            JsValue::from_serde(&(err.to_string()))
-                .unwrap_or(JsValue::from_str("Error encoding reqwest error"))
-        })
-        // La parte di errore del parsing non è gestita
-        .map(|val| {
-            console_log!("valore get_value {:?}", val);
-            JsValue::from_serde(&val).unwrap()
-        })
+    get_value(
+        &format!(
+            "{}dbs/{}/colls/{}/docs",
+            config.cosmos_db_uri(),
+            config.cosmos_db_name(),
+            "services"
+        ),
+        &service_id,
+    )
+    .await
+    .map(|p| JsValue::from_serde(&p).unwrap())
+    .map_err(|err| JsValue::from_serde(&err.to_string()).unwrap())
 }
 
-async fn get_value(url: &str) -> Result<Info, reqwest::Error> {
+async fn get_value(url: &str, service_id: &str) -> Result<String, String> {
+    let auth_token = get_authorization_token_using_master_key(
+        CosmosVerb::POST,
+        CosmosResurceType::Documents,
+        format!("dbs/{}/colls/{}/docs", "test", "services"),
+        Utc::now(),
+        "key".to_owned(),
+    )?;
     let res = reqwest::Client::new()
-        .get(url)
-        .header("Accept", "application/json")
+        .post(url)
+        .header("x-ms-documentdb-isquery", "true")
+        .header("Content-Type", "application/query+json")
+        .header("authorization", auth_token)
+        .body(format!(
+            "{{ \"query\": \"SELECT TOP 1 * FROM c WHERE c.serviceId = '{}'\"}}",
+            service_id
+        ))
         .send()
-        .await?;
+        .await
+        .map_err(|err| err.to_string())?;
+    let response = res.text().await.map_err(|err| err.to_string())?;
+    console_log!("Response {}", response);
 
-    let text: Info = res.json().await?;
-    Ok(text)
+    //let text: Service = res.json().await.map_err(|err| err.to_string())?;
+    Ok(response)
 }
