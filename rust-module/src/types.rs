@@ -2,6 +2,12 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CosmosQueryResponse<T> {
+    pub Documents: Vec<T>,
+    pub _count: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Service {
     serviceName: String,
     organizationName: String,
