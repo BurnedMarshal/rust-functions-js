@@ -47,7 +47,7 @@ pub async fn get_service(config: Config, service_id: String) -> Result<JsValue, 
         .map_err(|err| JsValue::from_serde(&err.to_string()).unwrap())
 }
 
-async fn get_value(url: &str, service_id: &str, db_name: &str, db_key: &str) -> Result<Service, String> {
+async fn get_value(url: &str, service_id: &str, db_name: &str, db_key: &str) -> Result<ServicePublic, String> {
     let date = Utc::now();
     let auth_token = get_authorization_token_using_master_key(
         CosmosVerb::POST,
@@ -65,7 +65,7 @@ async fn get_value(url: &str, service_id: &str, db_name: &str, db_key: &str) -> 
         .header("Content-Type", "application/query+json")
         .header("authorization", auth_token)
         .body(format!(
-            "{{ \"query\": \"SELECT TOP 1 * FROM c WHERE c.serviceId = '{}'\"}}",
+            "{{ \"query\": \"SELECT TOP 1 * FROM c WHERE c.serviceId = '{}' ORDER BY c.version DESC\"}}",
             service_id
         ));
     // console_log!("Request {:?}", req);
@@ -77,5 +77,33 @@ async fn get_value(url: &str, service_id: &str, db_name: &str, db_key: &str) -> 
     //console_log!("Response {}", response);
 
     let cosmos_response: CosmosQueryResponse<Service> = res.json().await.map_err(|err| err.to_string())?;
-    Ok(cosmos_response.Documents[0].to_owned())
+    let retrievedService = &cosmos_response.Documents[0];
+    let service: ServicePublic = ServicePublic {
+        available_notification_channels: if retrievedService.requireSecureChannels { Some(vec![NotificationChannel::WEBHOOK]) } else { Some(vec![NotificationChannel::WEBHOOK, NotificationChannel::EMAIL]) },
+        department_name: String::from(&retrievedService.departmentName),
+        organization_fiscal_code: String::from(&retrievedService.organizationFiscalCode),
+        organization_name: String::from(&retrievedService.organizationName),
+        service_id: String::from(&retrievedService.serviceId),
+        service_metadata: retrievedService.serviceMetadata.as_ref().map( |s| ServiceMetadataPublic{
+            address: s.address.as_ref().map(|a| a.to_string()),
+            app_android: s.appAndroid.as_ref().map(|a| a.to_string()),
+            app_ios: s.appIos.as_ref().map(|a| a.to_string()),
+            category: s.category,
+            cta: s.cta.as_ref().map(|a| a.to_string()),
+            custom_special_flow: s.customSpecialFlow.as_ref().map(|a| a.to_string()),
+            description: s.description.as_ref().map(|a| a.to_string()),
+            email: s.email.as_ref().map(|a| a.to_string()),
+            pec: s.pec.as_ref().map(|a| a.to_string()),
+            phone: s.phone.as_ref().map(|a| a.to_string()),
+            privacy_url: s.privacyUrl.as_ref().map(|a| a.to_string()),
+            scope: s.scope,
+            support_url: s.supportUrl.as_ref().map(|a| a.to_string()),
+            token_name: s.tokenName.as_ref().map(|a| a.to_string()),
+            tos_url: s.tosUrl.as_ref().map(|a| a.to_string()),
+            web_url: s.webUrl.as_ref().map(|a| a.to_string()),
+        }),
+        service_name: String::from(&retrievedService.serviceName),
+        version: retrievedService.version,
+    };
+    Ok(service.to_owned())
 }
