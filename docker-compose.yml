@@ -50,8 +50,8 @@ services:
       - io-fn
 
   storage:
-    image: azurite
-    command: ["sh", "-c", "node bin/azurite -l /opt/azurite/folder --blobPort 10003 --queuePort 10004 --tablePort 10005"]
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: ["sh", "-c", "azurite --blobPort 10003 --queuePort 10004 --tablePort 10005 --loose"]
     ports:
       - "10003:10003"
       - "10004:10004"
